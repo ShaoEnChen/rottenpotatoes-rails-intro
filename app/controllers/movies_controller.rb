@@ -11,7 +11,19 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
+    if request.path.include? 's_title'
+      @movies = Movie.all.order(:title)
+      @sort_title_path = '/'
+      @sort_release_path = '/movies/s_release'
+    elsif request.path.include? 's_release'
+      @movies = Movie.all.order(:release_date)
+      @sort_title_path = '/movies/s_title'
+      @sort_release_path = '/'
+    else
+      @movies = Movie.all
+      @sort_title_path = '/movies/s_title'
+      @sort_release_path = '/movies/s_release'
+    end
   end
 
   def new
