@@ -13,19 +13,27 @@ class MoviesController < ApplicationController
   def index
     # get rating options from model
     @all_ratings = Movie.pluck(:rating).uniq.sort
+    session[:ratings] = session[:ratings] || @all_ratings
     
     # filtering movies by ratings checkbox
     # checked ratings remain checked after refresh
-    if params[:ratings]
-      @movies = Movie.where({ rating: params[:ratings].keys })
-      @checked_ratings = params[:ratings].keys
-    else
+    if (!params[:ratings]) && (@all_ratings & session[:ratings]).empty?
       @movies = Movie.all
       @checked_ratings = @all_ratings
+      session[:ratings] = @checked_ratings
+    elsif !params[:ratings]
+      @movies = Movie.where({ rating: session[:ratings] })
+      @checked_ratings = session[:ratings]
+    else
+      @movies = Movie.where({ rating: params[:ratings].keys })
+      @checked_ratings = params[:ratings].keys
+      session[:ratings] = @checked_ratings
     end
     
     # clickable <thead> for sorting movies
     @sort_by = params[:sort_by]
+    session[:sort_by] = @sort_by
+    
     if @sort_by == 'title'
       # sort by title
       @movies = @movies.order(:title)
