@@ -11,16 +11,33 @@ class MoviesController < ApplicationController
   end
 
   def index
+    # get rating options from model
+    @all_ratings = Movie.pluck(:rating).uniq.sort
+    
+    # filtering movies by ratings checkbox
+    # checked ratings remain checked after refresh
+    if params[:ratings]
+      @movies = Movie.where({ rating: params[:ratings].keys })
+      @checked_ratings = params[:ratings].keys
+    else
+      @movies = Movie.all
+      @checked_ratings = @all_ratings
+    end
+    
+    # clickable <thead> for sorting movies
     if request.path.include? 's_title'
-      @movies = Movie.all.order(:title)
+      # sort by title
+      @movies = @movies.order(:title)
       @sort_title_path = '/'
       @sort_release_path = '/movies/s_release'
     elsif request.path.include? 's_release'
-      @movies = Movie.all.order(:release_date)
+      # sort by release date
+      @movies = @movies.order(:release_date)
       @sort_title_path = '/movies/s_title'
       @sort_release_path = '/'
     else
-      @movies = Movie.all
+      # not sorted
+      @movies = @movies
       @sort_title_path = '/movies/s_title'
       @sort_release_path = '/movies/s_release'
     end
@@ -48,7 +65,7 @@ class MoviesController < ApplicationController
   end
 
   def destroy
-    @movie = Movie.find(params[:id])
+    @movie = Movie.find params[:id]
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
