@@ -25,21 +25,22 @@ class MoviesController < ApplicationController
     end
     
     # clickable <thead> for sorting movies
-    if request.path.include? 's_title'
+    @sort_by = params[:sort_by]
+    if @sort_by == 'title'
       # sort by title
       @movies = @movies.order(:title)
-      @sort_title_path = '/'
-      @sort_release_path = '/movies/s_release'
-    elsif request.path.include? 's_release'
+      @sort_title_path = './'
+      @sort_release_path = './?sort_by=release'
+    elsif @sort_by == 'release'
       # sort by release date
       @movies = @movies.order(:release_date)
-      @sort_title_path = '/movies/s_title'
-      @sort_release_path = '/'
+      @sort_title_path = './?sort_by=title'
+      @sort_release_path = './'
     else
       # not sorted
       @movies = @movies
-      @sort_title_path = '/movies/s_title'
-      @sort_release_path = '/movies/s_release'
+      @sort_title_path = './?sort_by=title'
+      @sort_release_path = './?sort_by=release'
     end
   end
 
