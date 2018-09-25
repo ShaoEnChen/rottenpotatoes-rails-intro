@@ -16,23 +16,13 @@ class MoviesController < ApplicationController
     session[:ratings] = session[:ratings] || @all_ratings
     
     # preserve URI properties from params and sessions
+    # if no proper params in URI, redirect (#=> false)
     if check_param?
     
       # filtering movies by ratings checkbox
       # checked ratings remain checked after refresh
-      if params[:ratings] && (@all_ratings & session[:ratings]).empty?
-        # when movies of one rating is all deleted
-        @movies = Movie.all
-        @checked_ratings = @all_ratings
-        session[:ratings] = @checked_ratings
-      elsif !params[:ratings]
-        @movies = Movie.where({ rating: session[:ratings] })
-        @checked_ratings = session[:ratings]
-      else
-        @movies = Movie.where({ rating: params[:ratings].keys })
-        @checked_ratings = params[:ratings].keys
-        session[:ratings] = @checked_ratings
-      end
+      get_movies
+      set_ratings
       
       # clickable <thead> for sorting movies
       @sort_by = params[:sort_by]
@@ -104,6 +94,30 @@ class MoviesController < ApplicationController
       @movies = @movies
       @sort_title_path = movies_path + '?sort_by=title'
       @sort_release_path = movies_path + '?sort_by=release'
+    end
+  end
+  
+  def get_movies
+    if params[:ratings] && (@all_ratings & session[:ratings]).empty?
+      # when movies of one rating is all deleted
+      @movies = Movie.all
+    elsif !params[:ratings]
+      @movies = Movie.where({ rating: session[:ratings] })
+    else
+      @movies = Movie.where({ rating: params[:ratings].keys })
+    end
+  end
+  
+  def set_ratings
+    if params[:ratings] && (@all_ratings & session[:ratings]).empty?
+      # when movies of one rating is all deleted
+      @checked_ratings = @all_ratings
+      session[:ratings] = @checked_ratings
+    elsif !params[:ratings]
+      @checked_ratings = session[:ratings]
+    else
+      @checked_ratings = params[:ratings].keys
+      session[:ratings] = @checked_ratings
     end
   end
 
