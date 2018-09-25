@@ -16,7 +16,7 @@ class MoviesController < ApplicationController
     session[:ratings] = session[:ratings] || @all_ratings
     
     # preserve URI properties from params and sessions
-    if check_param? params, session
+    if check_param?
     
       # filtering movies by ratings checkbox
       # checked ratings remain checked after refresh
@@ -36,43 +36,28 @@ class MoviesController < ApplicationController
       
       # clickable <thead> for sorting movies
       @sort_by = params[:sort_by]
-      if @sort_by == 'title'
-        # sort by title
-        @movies = @movies.order(:title)
-        @sort_title_path = movies_path + '?sort_by='
-        @sort_release_path = movies_path + '?sort_by=release'
-      elsif @sort_by == 'release'
-        # sort by release date
-        @movies = @movies.order(:release_date)
-        @sort_title_path = movies_path + '?sort_by=title'
-        @sort_release_path = movies_path + '?sort_by='
-      else
-        # not sorted
-        @movies = @movies
-        @sort_title_path = movies_path + '?sort_by=title'
-        @sort_release_path = movies_path + '?sort_by=release'
-      end
       session[:sort_by] = @sort_by
+      sort_table
     end
   end
 
-  def check_param? ps, s
+  def check_param?
     need_redirect = false
     ratings = ""
     sort_by = ""
     # redirect index according to params and session
-    if ps[:ratings]
-      ratings = ps[:ratings].to_query("ratings")
-    elsif !ps[:ratings] && s[:ratings]
+    if params[:ratings]
+      ratings = params[:ratings].to_query("ratings")
+    elsif !params[:ratings] && session[:ratings]
       need_redirect = true
-      ratings = ratings_session s
+      ratings = ratings_session
     end
     
-    if ps[:sort_by]
-      sort_by = ps[:sort_by].to_query("sort_by")
-    elsif !ps[:sort_by] && s[:sort_by]
+    if params[:sort_by]
+      sort_by = params[:sort_by].to_query("sort_by")
+    elsif !params[:sort_by] && session[:sort_by]
       need_redirect = true
-      sort_by = sort_by_session s
+      sort_by = sort_by_session
     end
     
     if ratings != ""
@@ -86,21 +71,40 @@ class MoviesController < ApplicationController
       return true
     end
   end
-   
-  def ratings_session s
+
+  def ratings_session
     # return stringified params from session[:ratings]
     r = ""
     
     # compose params according to session content
-    s[:ratings].each do |rating|
+    session[:ratings].each do |rating|
       r = r + "&ratings[#{rating}]=" + rating
     end
     return r = r[1..-1]
   end
     
-  def sort_by_session s
+  def sort_by_session
     # return stringified params from session[:sort_by]
-    "sort_by=" + s[:sort_by]
+    return "sort_by=" + session[:sort_by]
+  end
+
+  def sort_table
+    if @sort_by == 'title'
+      # sort by title
+      @movies = @movies.order(:title)
+      @sort_title_path = movies_path + '?sort_by=none'
+      @sort_release_path = movies_path + '?sort_by=release'
+    elsif @sort_by == 'release'
+      # sort by release date
+      @movies = @movies.order(:release_date)
+      @sort_title_path = movies_path + '?sort_by=title'
+      @sort_release_path = movies_path + '?sort_by=none'
+    else
+      # not sorted
+      @movies = @movies
+      @sort_title_path = movies_path + '?sort_by=title'
+      @sort_release_path = movies_path + '?sort_by=release'
+    end
   end
 
   def new
