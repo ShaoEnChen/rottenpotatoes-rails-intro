@@ -32,10 +32,11 @@ class MoviesController < ApplicationController
   end
 
   def check_param?
+    # redirect index according to params and session
     need_redirect = false
     ratings = ""
     sort_by = ""
-    # redirect index according to params and session
+    
     if params[:ratings]
       ratings = params[:ratings].to_query("ratings")
     elsif !params[:ratings] && session[:ratings]
